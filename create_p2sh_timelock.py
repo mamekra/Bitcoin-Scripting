@@ -37,7 +37,7 @@ def main():
     #Build P2SH address from redeem script
     p2sh_addr = P2shAddress.from_script(redeem_script)
 
-    #info
+    #Info
     print("=== P2SH Time-Locked Address ===")
     print("Lock until block height:", args.timelock)
     print("Redeem script (Hex):", redeem_script.to_hex())

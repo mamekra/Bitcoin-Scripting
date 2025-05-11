@@ -1,0 +1,76 @@
+----Bitcoin Regtest Setup and Timelock P2SH Scripts Instructions----
+
+This guide provides step-by-step instructions to set up a Bitcoin regtest environment and run scripts to create and spend from a timelocked P2SH address.
+
+Start Bitcoin in Regtest Mode
+bitcoind -regtest
+
+----Wallet and Address Preparation----
+
+1. Create a Legacy Wallet
+
+bitcoin-cli -regtest createwallet "legwallet" false false "" false false true
+
+2. Check Wallet Info
+
+bitcoin-cli -regtest -rpcwallet=legwallet getwalletinfo
+
+3. Create a Legacy P2PKH Address
+
+bitcoin-cli -regtest -rpcwallet=legwallet getnewaddress "" legacy
+
+4. Get the Private Key for the Address
+
+bitcoin-cli -regtest -rpcwallet=legwallet dumpprivkey <your-legacy-address>
+
+5. Validate the Address
+
+bitcoin-cli -regtest -rpcwallet=legwallet validateaddress <your-legacy-address>
+
+6. Get the Public Key of the Address
+
+bitcoin-cli -regtest -rpcwallet=legwallet getaddressinfo <your-legacy-address>
+
+Use the pubkey field for the next script.
+
+-------->Run Script 1: Create Timelocked P2SH Address
+
+python create_p2sh_timelock.py --timelock <block_height> --pubkey <public_key>
+
+Replace <block_height> with desired block lock height (e.g., 12).
+
+Use the public key from step 6.
+
+Script will output a P2SH address and redeem script.
+
+----Fund the P2SH Address----
+
+7. Mine Blocks to Get Initial Funds
+
+bitcoin-cli -regtest -rpcwallet=legwallet generatetoaddress 101 <your-legacy-address>
+
+8. Send Funds to the P2SH Address
+
+bitcoin-cli -regtest -rpcwallet=legwallet sendtoaddress <p2sh-address> 0.001
+
+9. Mine a Block to Confirm the Transaction
+
+bitcoin-cli -regtest -rpcwallet=legwallet generatetoaddress 1 <your-legacy-address>
+
+--------->Run Script 2: Spend from Timelocked P2SH Address
+
+Once the block height is greater than or equal to the timelock:
+
+python spend_p2sh_timelock.py \
+  --privkey <private_key> \
+  --timelock <block_height> \
+  --p2sh <p2sh-address> \
+  --destination <your-legacy-address>
+
+<private_key>: From step 4
+
+<block_height>: Same value used in Script 1
+
+<p2sh-address>: From Script 1 output
+
+<destination>: Any valid P2PKH address you own
